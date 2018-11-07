@@ -23,6 +23,11 @@ using ChatProject.Areas.Identity;
 
 #line default
 #line hidden
+#line 4 "D:\MyProject\itstep_chat\ChatProject\ChatProject\Areas\Identity\Pages\_ViewImports.cshtml"
+using ChatProject.Models;
+
+#line default
+#line hidden
 #line 1 "D:\MyProject\itstep_chat\ChatProject\ChatProject\Areas\Identity\Pages\Account\_ViewImports.cshtml"
 using ChatProject.Areas.Identity.Pages.Account;
 
@@ -34,7 +39,7 @@ using ChatProject.Areas.Identity.Pages.Account.Manage;
 #line default
 #line hidden
     [global::Microsoft.AspNetCore.Razor.Hosting.RazorSourceChecksumAttribute(@"SHA1", @"196b0e59339dd69d3dd4b2bf20f3045a0cba0c12", @"/Areas/Identity/Pages/Account/Manage/_ViewImports.cshtml")]
-    [global::Microsoft.AspNetCore.Razor.Hosting.RazorSourceChecksumAttribute(@"SHA1", @"2c36ae711e728d60e3c4bd5f54b5338f6e2d7c16", @"/Areas/Identity/Pages/_ViewImports.cshtml")]
+    [global::Microsoft.AspNetCore.Razor.Hosting.RazorSourceChecksumAttribute(@"SHA1", @"98faee5890aeac112930b13607946487168d4135", @"/Areas/Identity/Pages/_ViewImports.cshtml")]
     [global::Microsoft.AspNetCore.Razor.Hosting.RazorSourceChecksumAttribute(@"SHA1", @"d611759979b40b801a12f73d92e7779974212dc8", @"/Areas/Identity/Pages/Account/_ViewImports.cshtml")]
     public class Areas_Identity_Pages_Account_Manage__ViewImports : global::Microsoft.AspNetCore.Mvc.Razor.RazorPage<dynamic>
     {

@@ -1,0 +1,33 @@
+﻿
+@{
+    ViewData["Title"] = "Chat";
+}
+
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.6.2/css/font-awesome.min.css">
+<link href='https://fonts.googleapis.com/css?family=Source+Sans+Pro:400,600,700,300' rel='stylesheet' type='text/css'>
+<link rel="stylesheet" href="~/css/chat.css">
+
+@*@Html.React("Chat", new { })*@
+<div id="chat"></div>
+
+@section Scripts{
+    <script crossorigin src="https://cdnjs.cloudflare.com/ajax/libs/react/16.4.0/umd/react.development.js"></script>
+    <script crossorigin src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/16.4.0/umd/react-dom.development.js"></script>
+
+    <script src="~/js/chat/components/Contact.jsx"></script>
+    <script src="~/js/chat/components/Profile.jsx"></script>
+    <script src="~/js/chat/components/Contacts.jsx"></script>
+    <script src="~/js/chat/components/Sidepanel.jsx"></script>
+
+    <script src="~/js/chat/components/ContactProfile.jsx"></script>
+    <script src="~/js/chat/components/Message.jsx"></script>
+    <script src="~/js/chat/components/Messages.jsx"></script>
+    <script src="~/js/chat/components/MessageInput.jsx"></script>
+    <script src="~/js/chat/components/Content.jsx"></script>
+
+    <script src="~/js/chat/index.jsx" asp-append-version="true"></script>
+    <script src="~/js/ChatAnimate.js"></script>
+}
+
+@*@Html.ReactInitJavaScript()*@

@@ -1,9 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
+using System.Drawing;
+using System.IO;
 using System.Linq;
 using System.Text.Encodings.Web;
 using System.Threading.Tasks;
+using ChatProject.Models;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.UI.Services;
 using Microsoft.AspNetCore.Mvc;
@@ -13,13 +17,13 @@ namespace ChatProject.Areas.Identity.Pages.Account.Manage
 {
     public partial class IndexModel : PageModel
     {
-        private readonly UserManager<IdentityUser> _userManager;
-        private readonly SignInManager<IdentityUser> _signInManager;
+        private readonly UserManager<ApplicationUser> _userManager;
+        private readonly SignInManager<ApplicationUser> _signInManager;
         private readonly IEmailSender _emailSender;
 
         public IndexModel(
-            UserManager<IdentityUser> userManager,
-            SignInManager<IdentityUser> signInManager,
+            UserManager<ApplicationUser> userManager,
+            SignInManager<ApplicationUser> signInManager,
             IEmailSender emailSender)
         {
             _userManager = userManager;
@@ -42,10 +46,28 @@ namespace ChatProject.Areas.Identity.Pages.Account.Manage
             [Required]
             [EmailAddress]
             public string Email { get; set; }
+                        
+            [Display(Name = "Middle name")]
+            [StringLength(20, ErrorMessage = "The {0} must be at least {2} and at max {1} characters long.", MinimumLength = 2)]
+            public string MiddleName { get; set; }
+
+            [Required]
+            [Display(Name = "First name")]
+            [StringLength(20, ErrorMessage = "The {0} must be at least {2} and at max {1} characters long.", MinimumLength = 2)]
+            public string FirstName { get; set; }
+
+            [Required]
+            [Display(Name = "Last name")]
+            [StringLength(20, ErrorMessage = "The {0} must be at least {2} and at max {1} characters long.", MinimumLength = 2)]
+            public string LastName { get; set; }
 
             [Phone]
             [Display(Name = "Phone number")]
             public string PhoneNumber { get; set; }
+            [ScaffoldColumn(false)]
+            public string Avatar { get; set; }
+            [Display(Name = "Avatar: ")]
+            public IFormFile File { get; set; }
         }
 
         public async Task<IActionResult> OnGetAsync()
@@ -56,19 +78,21 @@ namespace ChatProject.Areas.Identity.Pages.Account.Manage
                 return NotFound($"Unable to load user with ID '{_userManager.GetUserId(User)}'.");
             }
 
-            var userName = await _userManager.GetUserNameAsync(user);
-            var email = await _userManager.GetEmailAsync(user);
-            var phoneNumber = await _userManager.GetPhoneNumberAsync(user);
+            var userName = user.UserName;
 
             Username = userName;
 
             Input = new InputModel
             {
-                Email = email,
-                PhoneNumber = phoneNumber
+                Email = user.Email,
+                PhoneNumber = user.PhoneNumber,
+                FirstName = user.FirstName,
+                LastName = user.LastName,
+                MiddleName = user.MiddleName,
+                Avatar = user.Avatar
             };
 
-            IsEmailConfirmed = await _userManager.IsEmailConfirmedAsync(user);
+            IsEmailConfirmed = user.EmailConfirmed;
 
             return Page();
         }
@@ -86,7 +110,7 @@ namespace ChatProject.Areas.Identity.Pages.Account.Manage
                 return NotFound($"Unable to load user with ID '{_userManager.GetUserId(User)}'.");
             }
 
-            var email = await _userManager.GetEmailAsync(user);
+            var email = user.Email;
             if (Input.Email != email)
             {
                 var setEmailResult = await _userManager.SetEmailAsync(user, Input.Email);
@@ -97,7 +121,7 @@ namespace ChatProject.Areas.Identity.Pages.Account.Manage
                 }
             }
 
-            var phoneNumber = await _userManager.GetPhoneNumberAsync(user);
+            var phoneNumber = user.PhoneNumber;
             if (Input.PhoneNumber != phoneNumber)
             {
                 var setPhoneResult = await _userManager.SetPhoneNumberAsync(user, Input.PhoneNumber);
@@ -108,9 +132,61 @@ namespace ChatProject.Areas.Identity.Pages.Account.Manage
                 }
             }
 
+            user.FirstName = Input.FirstName;
+            user.LastName = Input.LastName;
+            user.MiddleName = Input.MiddleName;
+
+            if (Input.File?.Length > 0)
+            {
+                if (Input.File.ContentType == "image/jpeg" ||
+                    Input.File.ContentType == "image/png")
+                {
+                    //generate name
+                    string name = "";
+                    do
+                    {
+                        name = "avatars/" + Guid.NewGuid().ToString() + Path.GetExtension(Input.File.FileName);
+                    } while (System.IO.File.Exists("wwwroot/images/" + name));
+
+                    //Open image
+                    Image image = Image.FromStream(Input.File.OpenReadStream(), true, true);
+
+                    //Resize image
+                    int wh = image.Size.Height > image.Size.Width ? image.Size.Width : image.Size.Height;
+                    image = CropImage(image, 0, 0, wh, wh, 100, 100);
+
+                    //Save image
+                    image.Save("wwwroot/images/" + name);
+                    
+                    //Delete old image
+                    if (user.Avatar != "avatars/default.jpg" && System.IO.File.Exists("wwwroot/images/" + user.Avatar))
+                        System.IO.File.Delete("wwwroot/images/" + user.Avatar);
+
+                    //Change prop
+                    user.Avatar = name;
+                }
+            }
+
+            await _userManager.UpdateAsync(user);
+
             await _signInManager.RefreshSignInAsync(user);
             StatusMessage = "Your profile has been updated";
             return RedirectToPage();
+        }
+
+        private Image CropImage(Image sourceImage, int sourceX, int sourceY, int sourceWidth, int sourceHeight, int destinationWidth, int destinationHeight)
+        {
+            Image destinationImage = new Bitmap(destinationWidth, destinationHeight);
+            Graphics g = Graphics.FromImage(destinationImage);
+
+            g.DrawImage(
+              sourceImage,
+              new Rectangle(0, 0, destinationWidth, destinationHeight),
+              new Rectangle(sourceX, sourceY, sourceWidth, sourceHeight),
+              GraphicsUnit.Pixel
+            );
+
+            return destinationImage;
         }
 
         public async Task<IActionResult> OnPostSendVerificationEmailAsync()
@@ -133,7 +209,7 @@ namespace ChatProject.Areas.Identity.Pages.Account.Manage
             var callbackUrl = Url.Page(
                 "/Account/ConfirmEmail",
                 pageHandler: null,
-                values: new { userId = userId, code = code },
+                values: new { userId, code },
                 protocol: Request.Scheme);
             await _emailSender.SendEmailAsync(
                 email,

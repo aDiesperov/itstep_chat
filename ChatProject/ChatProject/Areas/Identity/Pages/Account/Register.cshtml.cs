@@ -88,7 +88,8 @@ namespace ChatProject.Areas.Identity.Pages.Account
                     Email = Input.Email,
                     FirstName = Input.FirstName,
                     LastName = Input.LastName,
-                    MiddleName = Input.MiddleName
+                    MiddleName = Input.MiddleName,
+                    Avatar = "default.jpg"
                 };
                 var result = await _userManager.CreateAsync(user, Input.Password);
                 if (result.Succeeded)

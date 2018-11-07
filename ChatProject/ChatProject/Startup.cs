@@ -15,6 +15,7 @@ using Microsoft.Extensions.DependencyInjection;
 using ChatProject.Models;
 using React.AspNet;
 using System.IO;
+using ChatProject.Hubs;
 
 namespace ChatProject
 {
@@ -55,6 +56,10 @@ namespace ChatProject
 
             services.AddMvc().SetCompatibilityVersion(CompatibilityVersion.Version_2_1);
 
+            services.AddTransient<UnitOfWork>();
+
+            services.AddSignalR();
+
             return services.BuildServiceProvider();
         }
 
@@ -81,7 +86,13 @@ namespace ChatProject
                 // your components as well as all of their dependencies.
                 // See http://reactjs.net/ for more information. Example:
                 //config
-                //  .AddScript("~/Scripts/First.jsx")
+                //  .AddScript("~/lib/signalr/signalr.js")
+                //  .AddScript("~/js/site.js")
+                //  .AddScript("~/js/chat/components/Message.jsx")
+                //  .AddScript("~/js/chat/components/MessageInput.jsx")
+                //  .AddScript("~/js/chat/components/Contact.jsx")
+                //  .AddScript("~/js/chat/components/Profile.jsx")
+                //  .AddScript("~/js/chat/index.jsx");
                 //  .AddScript("~/Scripts/Second.jsx");
 
                 // If you use an external build too (for example, Babel, Webpack,
@@ -96,6 +107,8 @@ namespace ChatProject
             app.UseCookiePolicy();
 
             app.UseAuthentication();
+
+            app.UseSignalR(config => config.MapHub<ChatHub>("/chatHub"));
 
             app.UseMvc(routes =>
             {
