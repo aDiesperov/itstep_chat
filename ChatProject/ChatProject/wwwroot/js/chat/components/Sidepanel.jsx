@@ -14,15 +14,22 @@
         return (
             <div id="sidepanel">
                 <Profile expand={this.state.expand} onClick={this.handleExpandChange.bind(this)} />
-                <div id="search">
-                    <label><i className="fa fa-search" aria-hidden="true" /></label>
-                    <input readOnly type="text" placeholder="Search contacts..." />
-                </div>
-                <Contacts changeChat={this.props.changeChat} selectedChat={this.props.selectedChat} expand={this.state.expand} />
-                <div id="bottom-bar">
-                    <button id="addcontact"><i className="fa fa-user-plus fa-fw" aria-hidden="true" /> <span>Add contact</span></button>
-                    <button id="settings"><i className="fa fa-cog fa-fw" aria-hidden="true" /> <span>Settings</span></button>
-                </div>
+                <Search changeSearch={this.props.changeSearch} />
+
+                <Contacts conversations={this.props.conversations}
+
+                    textSearch={this.props.textSearch}
+
+                    changeChat={this.props.changeChat}
+                    selectedChat={this.props.selectedChat}
+
+                    expand={this.state.expand} />
+
+                <BottomBar chatInfo={this.props.chatInfo}
+                    deleteParticipant={this.props.deleteParticipant}
+                    leaveChat={this.props.leaveChat}
+                    
+                    selectedChat={this.props.selectedChat} />
             </div>
         );
     }

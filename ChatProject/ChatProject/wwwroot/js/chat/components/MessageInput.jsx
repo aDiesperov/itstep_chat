@@ -10,7 +10,7 @@
         this.setState({
             text: e.target.value
         });
-    }    
+    }
 
     handleBtnClick() {
         this.newMessage();
@@ -27,7 +27,7 @@
         if ($.trim(text) === '') {
             return false;
         }
-        
+
         if (this.props.selectedChat === '') {
             return false;
         }
@@ -38,13 +38,18 @@
     }
 
     render() {
+        let input = this.props.status === 1 ? (<div className="wrap"><div className="closed-conversation">This conversation is close</div></div>) : (<div className="wrap">
+                <input value={this.state.text} onChange={this.handleTextChange.bind(this)} onKeyPress={this.handleKeyPress.bind(this)} type="text" placeholder="Write your message..." />
+                <i className="fa fa-paperclip attachment" aria-hidden="true" />
+                <button onClick={this.handleBtnClick.bind(this)} className="submit">
+                    <i className="fa fa-paper-plane" aria-hidden="true" />
+                </button>
+            </div>);
         return (
             <div className="message-input">
-                <div className="wrap">
-                    <input value={this.state.text} onChange={this.handleTextChange.bind(this)} onKeyPress={this.handleKeyPress.bind(this)} type="text" placeholder="Write your message..." />
-                    <i className="fa fa-paperclip attachment" aria-hidden="true" />
-                    <button onClick={this.handleBtnClick.bind(this)} className="submit"><i className="fa fa-paper-plane" aria-hidden="true" /></button>
-                </div>
+
+                {input}
+
             </div>
         );
     }

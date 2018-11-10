@@ -31,7 +31,7 @@
                     <p>{this.state.firstName + " " + this.state.lastName}</p>
                     <i onClick={this.props.onClick} className="fa fa-chevron-down expand-button" aria-hidden="true" />
                     <div id="status-options" className={this.state.active ? "active" : ""}>
-                        <ul>
+                        <ul className="list-unstyled">
                             <li id="status-online" className="active"><span className="status-circle" /><p>Online</p></li>
                             <li id="status-away"><span className="status-circle" /> <p>Away</p></li>
                             <li id="status-busy"><span className="status-circle" /> <p>Busy</p></li>
@@ -39,12 +39,9 @@
                         </ul>
                     </div>
                     <div id="expanded">
-                        <label htmlFor="twitter"><i className="fa fa-facebook fa-fw" aria-hidden="true" /></label>
-                        <input readOnly name="twitter" type="text" value={this.state.firstName} />
-                        <label htmlFor="twitter"><i className="fa fa-twitter fa-fw" aria-hidden="true" /></label>
-                        <input readOnly name="twitter" type="text" value={this.state.lastName} />
-                        <label htmlFor="twitter"><i className="fa fa-instagram fa-fw" aria-hidden="true" /></label>
-                        <input readOnly name="twitter" type="text" value={this.state.middleName} />
+                        <input readOnly type="text" value={this.state.firstName} />
+                        <input readOnly type="text" value={this.state.lastName} />
+                        <input readOnly type="text" value={this.state.middleName} />
                     </div>
                 </div>
             </div>
