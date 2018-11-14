@@ -1,12 +1,7 @@
 ﻿class Messages extends React.Component {
-
-    componentDidUpdate() {
-        this.refs.messages.scrollTop = this.refs.messages.scrollHeight - this.refs.messages.clientHeight;
-    }
-
     render() {
         let messages = this.props.messages.map(msg => (
-            <Message key={msg.messageId} src={"/images/" + msg.image} sent={msg.isMine}>
+            <Message markedMessage={this.props.markedMessages.indexOf(msg.messageId) !== -1} markingMessage={this.props.markingMessage} id={msg.messageId} key={msg.messageId} attachments={msg.attachments} src={"/images/" + msg.image} sent={msg.isMine}>
                 {msg.text}
             </Message>
         ));

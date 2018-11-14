@@ -13,15 +13,15 @@
     -webkit-font-smoothing: antialiased;
 }
 
-#frame {
-    width: 95%;
-    min-width: 360px;
-    max-width: 1000px;
-    height: 92vh;
-    min-height: 300px;
-    max-height: 720px;
-    background: #E6EAEA;
-}
+    #frame {
+        width: 95%;
+        min-width: 475px;
+        max-width: 1000px;
+        height: 92vh;
+        min-height: 300px;
+        max-height: 720px;
+        background: #E6EAEA;
+    }
 
 @media screen and (max-width: 360px) {
     #frame {
@@ -30,17 +30,17 @@
     }
 }
 
-#sidepanel {
-    float: left;
-    min-width: 280px;
-    max-width: 340px;
-    width: 40%;
-    height: 100%;
-    background: #2c3e50;
-    color: #f5f5f5;
-    overflow: hidden;
-    position: relative;
-}
+    #sidepanel {
+        float: left;
+        min-width: 280px;
+        max-width: 340px;
+        width: 40%;
+        height: 100%;
+        background: #2c3e50;
+        color: #f5f5f5;
+        overflow: hidden;
+        position: relative;
+    }
 
 @media screen and (max-width: 735px) {
     #sidepanel {
@@ -558,7 +558,7 @@ span.status-circle:before {
     }
 }
 
-#frame .content {
+.content {
     float: right;
     width: calc(100% - 340px);
     height: 100%;
@@ -567,54 +567,47 @@ span.status-circle:before {
 }
 
 @media screen and (max-width: 991px) {
-    #frame .content {
+    .content {
         width: calc(100% - 280px);
         min-width: 300px !important;
     }
 }
 
 @media screen and (max-width: 735px) {
-    #frame .content {
+    .content {
         width: calc(100% - 58px);
         min-width: 300px !important;
     }
 }
 
-#frame .content .contact-profile {
-    width: 100%;
-    height: 60px;
-    line-height: 60px;
-    background: #f5f5f5;
-}
+    .contact-profile {
+        width: 100%;
+        height: 60px;        
+        background: #f5f5f5;
+    }
 
-#frame .content .contact-profile img {
-    width: 40px;
-    border-radius: 50%;
-    float: left;
-    margin: 9px 12px 0 9px;
-}
+        .contact-profile img {
+            width: 40px;
+            border-radius: 50%;
+            float: left;
+            margin: 9px 12px 0 9px;
+        }
 
-#frame .content .contact-profile p {
-    float: left;
-    margin: 0px;
-}
+        .contact-profile p {
+            float: left;
+            line-height: 60px;
+            margin: 0px;
+        }
+        
+        .bar-messages{
+            color: #435f7a;
+            float: right;
+            margin: 10px;
+        }
 
-#frame .content .contact-profile .social-media {
-    float: right;
-}
-
-#frame .content .contact-profile .social-media i {
-    margin-left: 14px;
-    cursor: pointer;
-}
-
-#frame .content .contact-profile .social-media i:nth-last-child(1) {
-    margin-right: 20px;
-}
-
-#frame .content .contact-profile .social-media i:hover {
-    color: #435f7a;
-}
+        .bar-messages button{
+            margin-left: 10px;
+        }
 
     .messages {
         height: calc(100% - 98px);
@@ -624,7 +617,7 @@ span.status-circle:before {
     }
 
     @media screen and (max-width: 735px) {
-        #frame .content .messages {
+        .messages {
             max-height: calc(100% - 108px);
         }
     }
@@ -669,28 +662,43 @@ span.status-circle:before {
                 margin: 6px 0 0 8px;
             }
 
-            .messages li.replies > p {
+            .messages li div {
+                display: inline-block;
+                padding: 10px 15px;
+                border-radius: 20px;
+                max-width: 300px;
+                line-height: 130%;
+                position: relative;
+            }
+
+            .messages .marked > div::before {
+                content: '';
+                position: absolute;
+                width: 12px;
+                height: 12px;
+                left: -20px;
+                top: 13px;
+                background: green;
+                border-radius: 50%;
+            }
+
+                .messages li > div img, .messages li > div video, .messages li > div audio {
+                    width: 100%;
+                    min-width: 270px;
+                }
+
+            .messages li.replies > div {
                 background: #435f7a;
                 color: #f5f5f5;
             }
 
-            .messages li.sent > p {
+            .messages li.sent > div {
                 background: #f5f5f5;
             }
 
-
-
-.messages li p {
-    display: inline-block;
-    padding: 10px 15px;
-    border-radius: 20px;
-    max-width: 205px;
-    line-height: 130%;
-}
-
-@media screen and (min-width: 735px) {
-    #frame .content .messages ul li p {
-        max-width: 300px;
+@media screen and (min-width: 991px) {
+    .messages ul li div {
+        max-width:350px;
     }
 }
 

@@ -12,6 +12,8 @@ namespace ChatProject.Models
         [Required]
         public virtual Message Message { get; set; }
         [Required]
+        public string Name { get; set; }
+        [Required]
         public string Location { get; set; }
     }
 }

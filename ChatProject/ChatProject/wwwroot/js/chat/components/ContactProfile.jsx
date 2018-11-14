@@ -1,15 +1,17 @@
 ﻿class ContactProfile extends React.Component {
-
     render() {
         return (
             <div className="contact-profile">
                 <img src={"/images/" + this.props.image} alt="" />
                 <p>{this.props.title}</p>
-                <div className="social-media">
-                    <i className="fa fa-facebook" aria-hidden="true" />
-                    <i className="fa fa-twitter" aria-hidden="true" />
-                    <i className="fa fa-instagram" aria-hidden="true" />
-                </div>
+
+                {this.props.markedMessages ? (
+                    <div className="bar-messages">
+                        <button onClick={this.props.unmarkingAllMessages} className="btn btn-success"><span className="glyphicon glyphicon-unchecked" /></button>
+                        <button onClick={this.props.deletingMessages} className="btn btn-danger"><span className="glyphicon glyphicon-trash" /></button>
+                    </div>
+                ) : null}
+
             </div>
         );
     }

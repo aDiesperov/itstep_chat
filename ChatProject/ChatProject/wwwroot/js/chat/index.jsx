@@ -32,7 +32,8 @@
         connection.on("ReceiveMessage", this.handleGetMessage.bind(this));
         connection.on("ReceiveClosedChat", this.handleClosedChat.bind(this));
         connection.on("ReceiveChangeTitle", this.handleChangeTitle.bind(this));
-        connection.on("ReceiveCreateChat", this.handleCreateChat.bind(this));
+        connection.on("ReceiveCreatedChat", this.handleCreatedChat.bind(this));
+        connection.on("ReceiveDeletedMessages", this.handleDeletedMessages.bind(this));
     }
 
     componentWillMount() {
@@ -47,6 +48,10 @@
         this.setState({ chatInfo: chatInfo });
     }
 
+    handleAddParticipant() {
+        this.updateData(this.state.selectedChat);
+    }
+
     handleClosedChat(guid) {
         if (guid === this.state.selectedChat) {
             let chatInfo = this.state.chatInfo;
@@ -55,7 +60,7 @@
         }
     }
 
-    handleCreateChat(conversation) {
+    handleCreatedChat(conversation) {
         let conversations = this.state._conversations;
         conversations.push(conversation);
         this.setState({ _conversations: conversations });
@@ -97,6 +102,16 @@
             conversation[0].text = (message.isMine ? "You: " : "") + message.text;
             this.setState({ _conversations: conversations });
         }
+
+        if (message.isMine) $(".messages").animate({ scrollTop: $(".messages ul").height() }, "fast");
+    }
+
+    handleDeletedMessages(deletedMessages) {
+        if (deletedMessages.conversation === this.state.selectedChat) {
+            let messages = this.state.chatHistory;
+            messages = messages.filter(msg => deletedMessages.messagesIds.indexOf(msg.messageId) === -1);
+            this.setState({ chatHistory: messages });
+        }
     }
 
     handleChangeSearch(search) {
@@ -116,21 +131,33 @@
 
     updateData(guid) {
         if (guid) {
-            connection.invoke("GetHistoryConversation", guid).then(historyConversation => {
-                this.setState({
-                    chatHistory: historyConversation.messages,
-                    chatInfo: {
-                        image: historyConversation.image,
-                        title: historyConversation.title,
-                        group: historyConversation.group,
-                        status: historyConversation.status,
-                        creator: historyConversation.creator,
-                        participants: historyConversation.participants
-                    }
-                });
-            }).catch(reason => {
-                console.error("There isn'n chat! Reason: " + reason);
-            });
+            let xhr = new XMLHttpRequest();
+            xhr.open("GET", "/api/chat/" + guid);
+
+            xhr.onreadystatechange = () => {
+                if (xhr.readyState === 4 && xhr.status === 200) {
+                    let chatInfoAll = JSON.parse(xhr.response);
+                    this.setState({
+                        chatHistory: chatInfoAll.messages,
+                        chatInfo: {
+                            image: chatInfoAll.image,
+                            title: chatInfoAll.title,
+                            group: chatInfoAll.group,
+                            status: chatInfoAll.status,
+                            creator: chatInfoAll.creator,
+                            participants: chatInfoAll.participants
+                        }
+                    });
+                    $(".messages").ready(
+                        $(".messages").animate({ scrollTop: $(".messages ul").height() }, "fast")
+                    );
+                }
+                else if (xhr.readyState === 4) {
+                    console.error("Conversation is warning");
+                }
+            };
+
+            xhr.send();
         }
         else {
             this.setState({
@@ -149,22 +176,21 @@
 
     render() {
         return (
-            <div className="wrapper_chat">
-                <div id="frame">
-                    <Sidepanel conversations={this.state._conversations}                        
-                        
-                        textSearch={this.state.search}
-                        changeSearch={this.handleChangeSearch.bind(this)}
+            <div id="frame">
+                <Sidepanel conversations={this.state._conversations}
 
-                        chatInfo={this.state.chatInfo}
-                        deleteParticipant={this.handleDeleteParticipant.bind(this)}
-                        leaveChat={this.handleLeaveChat.bind(this)}
+                    textSearch={this.state.search}
+                    changeSearch={this.handleChangeSearch.bind(this)}
 
-                        changeChat={this.handleChatChange.bind(this)}
-                        selectedChat={this.state.selectedChat} />
+                    chatInfo={this.state.chatInfo}
+                    deleteParticipant={this.handleDeleteParticipant.bind(this)}
+                    addParticipant={this.handleAddParticipant.bind(this)}
+                    leaveChat={this.handleLeaveChat.bind(this)}
 
-                    <Content chatInfo={this.state.chatInfo} chatHistory={this.state.chatHistory} selectedChat={this.state.selectedChat} />
-                </div>
+                    changeChat={this.handleChatChange.bind(this)}
+                    selectedChat={this.state.selectedChat} />
+
+                <Content chatInfo={this.state.chatInfo} chatHistory={this.state.chatHistory} selectedChat={this.state.selectedChat} />
             </div>
         );
     }

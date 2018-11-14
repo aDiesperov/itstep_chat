@@ -2,6 +2,7 @@
 using ChatProject.Hubs.Models;
 using ChatProject.Models;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.SignalR;
 using System;
@@ -185,7 +186,7 @@ namespace ChatProject.Hubs
                 Type = TypeParticipant.administrator,
                 User = user
             });
-            await Clients.Caller.SendCoreAsync("ReceiveCreateChat", new[] { conversationsReturn });
+            await Clients.Caller.SendCoreAsync("ReceiveCreatedChat", new[] { conversationsReturn });
 
             if(users.Count() == 1)
             {
@@ -202,7 +203,7 @@ namespace ChatProject.Hubs
                     User = usr
                 });
 
-                await Clients.User(usr.Id).SendCoreAsync("ReceiveCreateChat", new[] { conversationsReturn });
+                await Clients.User(usr.Id).SendCoreAsync("ReceiveCreatedChat", new[] { conversationsReturn });
             }
 
             return true;
@@ -215,78 +216,6 @@ namespace ChatProject.Hubs
 
             return _userManager.Users.Where(usr => usr != user).Select(usr => usr.UserName);
         }
-        public async Task SendMessage(string message, string guid)
-        {
-            ApplicationUser user = await _userManager.GetUserAsync(Context.User);
-            if (user == null)
-                return;
-
-            Conversation conversation = await _unitOfWork.ConversationRepository.GetConversationByGuidAsync(guid);
-            if (conversation == null || conversation.Status == StatusConversation.closed)
-                return;
-
-            Message msg = new Message()
-            {
-                Text = message,
-                Sender = user,
-                Created = DateTime.Now,
-                Conversation = conversation
-            };
-
-            await _unitOfWork.MessageRepository.CreateAsync(msg);
-
-            IEnumerable<ApplicationUser> users = conversation.Participants.Select(part => part.User);
-            if (users.Count() > 0)
-            {
-                MessagesReturn messagesReturn = new MessagesReturn()
-                {
-                    Image = msg.Sender.Avatar,
-                    MessageId = msg.MessageId,
-                    Text = msg.Text,
-                    Conversation = conversation.Guid
-                };
-
-                foreach (var usr in users)
-                {
-                    messagesReturn.IsMine = msg.Sender == usr;
-
-                    await Clients.User(usr.Id).SendCoreAsync("ReceiveMessage", new[] { messagesReturn });
-                }
-            }
-        }
-        public async Task<ApplicationUser> GetProfile() => await _userManager.GetUserAsync(Context.User);
-        public async Task<ChatConversationReturn> GetHistoryConversation(string guid)
-        {
-            ApplicationUser user = await _userManager.GetUserAsync(Context.User);
-            if (user == null)
-                return null;
-
-            var conversation = await _unitOfWork.ConversationRepository.GetConversationByGuidAsync(guid);
-            if (conversation == null)
-                return null;
-
-            var messages = conversation.Messages;
-            var userConv = String.IsNullOrEmpty(conversation.Title) ? conversation.Participants.Single(p => p.User != user).User : null;
-            
-            ChatConversationReturn chatConversation = new ChatConversationReturn()
-            {
-                Title = userConv == null ? conversation.Title : userConv.FirstName + " " + userConv.LastName,
-                Image = userConv == null ? "avatars/default.jpg" : userConv.Avatar,
-                Group = userConv == null ? true : false,
-                Status = conversation.Status,
-                Creator = conversation.Creator == user,
-                Participants = conversation.Creator == user && userConv == null ? conversation.Participants.Where(part => part.User != user).ToDictionary(part => part.User.Id, part => part.User.FirstName + " " + part.User.LastName) : null,
-                Messages = messages.Select(msg => new MessagesReturn()
-                {
-                    MessageId = msg.MessageId,
-                    Image = msg.Sender.Avatar,
-                    Text = msg.Text,
-                    IsMine = msg.Sender == user
-                })
-            };
-
-            return chatConversation;
-        }
         public async Task<IEnumerable<ConversationReturn>> GetConversations()
         {
             ApplicationUser user = await _userManager.GetUserAsync(Context.User);
@@ -297,7 +226,7 @@ namespace ChatProject.Hubs
             if (conversations.Count() == 0)
                 return null;
 
-            IEnumerable<ConversationReturn> newConversations = conversations.Select(conversation =>
+            IEnumerable<ConversationReturn> conversationsReturn = conversations.Select(conversation =>
             {
                 var userConv = (conversation.Title == null) ? conversation.Participants.Where(p => p.User != user).FirstOrDefault()?.User : null;
                 var lastMessage = conversation.Messages.LastOrDefault();
@@ -305,13 +234,13 @@ namespace ChatProject.Hubs
                 return new ConversationReturn()
                 {
                     Guid = conversation.Guid,
-                    Text = (user == lastMessage?.Sender ? "You: " : "") + lastMessage?.Text,
+                    Text = lastMessage != null ? (user == lastMessage.Sender ? "You: " : "") + lastMessage.Text : "",
                     Image = (userConv == null) ? "avatars/default.jpg" : userConv.Avatar,
                     Title = (userConv == null) ? conversation.Title : userConv.FirstName + " " + userConv.LastName
                 };
             });
 
-            return newConversations;
+            return conversationsReturn;
         }
     }
 }

@@ -38,31 +38,28 @@
         let participants = this.state._participants;
         if (participants.length === 0) {
             console.log("Paricipants are empty!");
-            return false;
+            return;
         }
 
         if (this.state._title.length === 0) {
             if (participants.length === 1 && participants[0].length > 4) {
                 //ok - It's one to one chat
                 this.CreateConversation()
-                return true;
             }
-            alert("Error! Title or participant's empty!");
-            return false;
+            else alert("Error! Title or participant's empty!");
         }
-        else if (participants.length > 0){
+        else{
             for (let i = 0; i < participants.length; i++) {
                 if (participants[i].length < 5) return false;
                 for (let j = 0; j < participants.length; j++) {
                     if (i === j) continue;
                     if (participants[i] === participants[j]) {
                         alert("You can add any user once!");
-                        return false;
+                        return;
                     }
                 }
             }
             this.CreateConversation();
-            return true;
         }
     }
 
@@ -91,7 +88,7 @@
                     <div className="col-xs-2">
                         <button onClick={this.handleRemoveList.bind(this, index)} className="btn btn-danger "><i className="glyphicon glyphicon-minus"></i></button>
                     </div>
-                    ) : ''}
+                    ) : null}
                 </div>
             </div>
         ))

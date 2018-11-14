@@ -27,6 +27,7 @@
 
                 <BottomBar chatInfo={this.props.chatInfo}
                     deleteParticipant={this.props.deleteParticipant}
+                    addParticipant={this.props.addParticipant}
                     leaveChat={this.props.leaveChat}
                     
                     selectedChat={this.props.selectedChat} />

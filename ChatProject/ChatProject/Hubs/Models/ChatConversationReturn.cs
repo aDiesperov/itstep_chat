@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace ChatProject.Hubs.Models
 {
-    public class ChatConversationReturn
+    public class ChatInfoReturn
     {
         public string Title { get; set; }
         public string Image { get; set; }
@@ -14,6 +14,6 @@ namespace ChatProject.Hubs.Models
         public StatusConversation Status { get; set; }
         public bool Creator { get; set; }
         public Dictionary<string, string> Participants { get; set; }
-        public IEnumerable<MessagesReturn> Messages { get; set; }
+        public IEnumerable<MessageReturn> Messages { get; set; }
     }
 }

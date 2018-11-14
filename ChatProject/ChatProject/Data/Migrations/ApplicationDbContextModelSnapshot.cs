@@ -30,6 +30,9 @@ namespace ChatProject.Data.Migrations
 
                     b.Property<int>("MessageId");
 
+                    b.Property<string>("Name")
+                        .IsRequired();
+
                     b.HasKey("AttachmentId");
 
                     b.HasIndex("MessageId");
@@ -77,7 +80,8 @@ namespace ChatProject.Data.Migrations
                     b.Property<string>("SenderId")
                         .IsRequired();
 
-                    b.Property<string>("Text");
+                    b.Property<string>("Text")
+                        .IsRequired();
 
                     b.HasKey("MessageId");
 

@@ -8,20 +8,31 @@
             middleName: "",
             active: false
         };
-        
-        connection.invoke("GetProfile").then(profile => {
-            this.setState({
-                avatar: profile.avatar,
-                firstName: profile.firstName,
-                lastName: profile.lastName,
-                middleName: profile.middleName
-            });
-        });
+
+        let xhr = new XMLHttpRequest();
+        xhr.open("GET", "/api/chat/GetProfile");
+
+        xhr.onreadystatechange = () => {
+            if (xhr.readyState === 4 && xhr.status === 200) {
+                let profile = JSON.parse(xhr.response);
+                this.setState({
+                    avatar: profile.avatar,
+                    firstName: profile.firstName,
+                    lastName: profile.lastName,
+                    middleName: profile.middleName
+                });
+            }
+            else if (xhr.readyState === 4) {
+                console.error("Warning");
+            }
+        };
+
+        xhr.send();
     }
 
     handleStatusChange() {
         this.setState({ active: !this.state.active });
-    }    
+    }
 
     render() {
         return (

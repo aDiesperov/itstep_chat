@@ -13,6 +13,7 @@ namespace ChatProject.Models
         public virtual Conversation Conversation { get; set; }
         [Required]
         public virtual ApplicationUser Sender { get; set; }
+        [Required]
         public string Text { get; set; }
         public DateTime Created { get; set; } = DateTime.Now;
         public virtual IEnumerable<Attachment> Attachments { get; set; }

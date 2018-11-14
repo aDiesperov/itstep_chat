@@ -1,0 +1,170 @@
+﻿программа
+
+using System;
+using System.IO;
+using System.Text;
+
+namespace laba2_DiesNalPrih
+{
+    class MainClass
+    {
+        readonly static string  ltrs = "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ";
+        public static void Main(string[] args)
+        {
+
+            int select = 0;
+            do
+            {
+                Console.Clear();
+                Console.WriteLine("1) Encode file");
+                Console.WriteLine("2) Decode file");
+                Console.WriteLine("3) Info");
+                select = Convert.ToInt32(Console.ReadLine());
+
+                switch (select)
+                {
+                    case 1:
+                        CodingFile(true);
+                        break;
+                    case 2:
+                        CodingFile(false);
+                        break;
+                    case 3:
+                        SomeInfo();
+                        break;
+                }
+            } while (select != 4);
+        }
+
+        protected static void CodingFile(bool mode)
+        {
+            Console.WriteLine("Input file:");
+            string inpPath = Console.ReadLine();
+            if (!File.Exists(inpPath)) throw new InvalidDataException("Path is'n exit");
+
+            Console.WriteLine("Output file:");
+            string outPath = Console.ReadLine();
+
+            Console.WriteLine("Write mode encrypt:");
+            Console.WriteLine("1) Wrap mode");
+            Console.WriteLine("2) Replace mode");
+
+            int modeCoding = Convert.ToInt32(Console.ReadLine());
+            if (modeCoding != 1 && modeCoding != 2) throw new InvalidDataException("Mode is'n exist");
+
+            if(mode){
+                EncodingFile(inpPath, outPath, modeCoding);
+            }
+            else{
+                DecodingFile(inpPath, outPath, modeCoding);
+            }
+            
+        }
+
+        private static void DecodingFile(string inpPath, string outPath, int modeCoding)
+        {
+            string text = File.ReadAllText(inpPath);
+            if (modeCoding == 1)
+            {
+                text = EncryptAlgorithms.DecodingWrapLetters(text, 2);
+            }
+            else
+            {
+                text = EncryptAlgorithms.DecodingReplaceLetters(text, ltrs);
+            }
+            File.WriteAllText(outPath, text);
+        }
+
+
+
+        private static void EncodingFile(string inpPath, string outPath, int modeCoding)
+        {
+            string text = File.ReadAllText(inpPath);
+            if(modeCoding == 1){
+                text = EncryptAlgorithms.EncodingWrapLetters(text, 2);
+            }
+            else{
+                text = EncryptAlgorithms.EncodingReplaceLetters(text, ltrs);
+            }
+            File.WriteAllText(outPath, text);
+        }
+
+        private static void SomeInfo()
+        {
+            Console.Clear();
+            Console.WriteLine("Some info...");
+            Console.WriteLine("Press any key to continue");
+            Console.ReadKey();
+        }
+
+
+    }
+} 
+2я программа
+using System;
+using System.Text;
+
+namespace laba2_DiesNalPrih
+{
+    public class EncryptAlgorithms
+    {
+        public static string EncodingReplaceLetters(string str, string ltrs)
+        {
+            if (ltrs.Length != 62) throw new ArgumentException("Long of ltrs must be 71 chars!");
+            StringBuilder sb = new StringBuilder(str);
+            for (int i = 0, pos = 0; i < sb.Length; i++)
+            {
+
+                pos = ((int)sb[i] > 47 && (int)sb[i] < 58) ? (int)sb[i] - 48 :
+                    ((int)sb[i] > 64 && (int)sb[i] < 91) ? (int)sb[i] - 55 :
+                    ((int)sb[i] > 96 && (int)sb[i] < 123) ? (int)sb[i] - 61 :
+                    -1;
+                if (pos != -1)
+                    sb[i] = ltrs[pos];
+            }
+            return sb.ToString();
+        }
+
+        public static string EncodingWrapLetters(string str, int step)
+        {
+            StringBuilder sb = new StringBuilder(str);
+            char tmp;
+            for (int i = 0; i < str.Length - step; i++)
+            {
+                tmp = sb[i];
+                sb[i] = sb[i + step];
+                sb[i + step] = tmp;
+            }
+            return sb.ToString();
+        }
+
+        public static string DecodingWrapLetters(string str, int step)
+        {
+            StringBuilder sb = new StringBuilder(str);
+            char tmp;
+            for (int i = str.Length - 1; i >= step; i--)
+            {
+                tmp = sb[i];
+                sb[i] = sb[i - step];
+                sb[i - step] = tmp;
+            }
+            return sb.ToString();
+        }
+
+        public static string DecodingReplaceLetters(string str, string ltrs)
+        {
+            if (ltrs.Length != 62) throw new ArgumentException("Long of ltrs must be 71 chars!");
+            StringBuilder sb = new StringBuilder(str);
+            for (int i = 0, pos = 0; i < sb.Length; i++)
+            {
+                pos = ltrs.IndexOf(sb[i]);
+                if (pos != -1)
+                    sb[i] = (pos < 10) ? (char)(pos + 48) :
+                            (pos > 9 && pos < 36) ? (char)(pos + 55) :
+                            (char)(pos + 61);
+            }
+            return sb.ToString();
+        }
+    }
+}
+

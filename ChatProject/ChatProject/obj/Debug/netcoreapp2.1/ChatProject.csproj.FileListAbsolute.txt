@@ -2,7 +2,6 @@ D:\MyProject\itstep_chat\ChatProject\ChatProject\bin\Debug\netcoreapp2.1\ChatPro
 D:\MyProject\itstep_chat\ChatProject\ChatProject\bin\Debug\netcoreapp2.1\ChatProject.runtimeconfig.json
 D:\MyProject\itstep_chat\ChatProject\ChatProject\bin\Debug\netcoreapp2.1\ChatProject.runtimeconfig.dev.json
 D:\MyProject\itstep_chat\ChatProject\ChatProject\bin\Debug\netcoreapp2.1\ChatProject.dll
-D:\MyProject\itstep_chat\ChatProject\ChatProject\obj\Debug\netcoreapp2.1\ChatProject.csprojAssemblyReference.cache
 D:\MyProject\itstep_chat\ChatProject\ChatProject\obj\Debug\netcoreapp2.1\ChatProject.csproj.CoreCompileInputs.cache
 D:\MyProject\itstep_chat\ChatProject\ChatProject\obj\Debug\netcoreapp2.1\ChatProject.RazorAssemblyInfo.cache
 D:\MyProject\itstep_chat\ChatProject\ChatProject\obj\Debug\netcoreapp2.1\ChatProject.RazorAssemblyInfo.cs
@@ -43,3 +42,4 @@ D:\MyProject\itstep_chat\ChatProject\ChatProject\obj\Debug\netcoreapp2.1\Razor\A
 D:\MyProject\itstep_chat\ChatProject\ChatProject\obj\Debug\netcoreapp2.1\Razor\Areas\Identity\Pages\_ViewImports.g.cshtml.cs
 D:\MyProject\itstep_chat\ChatProject\ChatProject\obj\Debug\netcoreapp2.1\UserSecretsAssemblyInfo.cs
 D:\MyProject\itstep_chat\ChatProject\ChatProject\obj\Debug\netcoreapp2.1\Razor\Views\Chat\Index.g.cshtml.cs
+D:\MyProject\itstep_chat\ChatProject\ChatProject\obj\Debug\netcoreapp2.1\ChatProject.csprojAssemblyReference.cache
