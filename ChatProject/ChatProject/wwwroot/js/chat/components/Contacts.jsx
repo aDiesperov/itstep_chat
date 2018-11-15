@@ -3,7 +3,7 @@
     handleChangeChat = (guid) => () => this.props.changeChat(guid);
 
     render() {
-        let conversations = this.props.conversations.map(conversation => conversation.title !== null && conversation.title.indexOf(this.props.textSearch) !== -1 ? (
+        let conversations = this.props.conversations.map(conversation => conversation.title.toLowerCase().indexOf(this.props.textSearch.toLowerCase()) !== -1 ? (
             <Contact onClick={this.handleChangeChat(conversation.guid)} key={conversation.guid} conversation={conversation.guid}
                 active={conversation.guid === this.props.selectedChat}
                 src={"/images/"+conversation.image}

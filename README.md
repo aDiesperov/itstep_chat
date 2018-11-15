@@ -3,4 +3,4 @@ Chat for course project
 
 Using technologies:
 
-ASP MVC Core/MS SQL + ADO.NET(EF6)/JS + React + SignalR/ HTML + CSS + LESS
+ASP.NET Core MVC/ADO.NET(EF Core)/JS(AJAX, React, SignalR)/ HTML + CSS

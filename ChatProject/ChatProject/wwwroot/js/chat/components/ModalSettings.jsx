@@ -5,11 +5,24 @@
             _options: [],
             newParticipant: '',
             title: ''
-        }
+        };
 
-        connection.invoke("GetAllUsers").then(users => {
-            this.setState({ _options: users });
-        })
+        let xhr = new XMLHttpRequest();
+        xhr.open("GET", "/api/chat/GetAllUsers");
+
+        xhr.onreadystatechange = () => {
+            if (xhr.readyState === 4 && xhr.status === 200) {
+                let users = JSON.parse(xhr.response);
+                if (users !== null) {
+                    this.setState({ _options: users });
+                }
+            }
+            else if (xhr.readyState === 4) {
+                console.error("Warning");
+            }
+        };
+
+        xhr.send();
     }
 
     componentWillReceiveProps(next) {
@@ -20,14 +33,25 @@
         if (this.state.title === '') return;
 
         if (this.props.chatInfo.creator && this.props.chatInfo.group) {
-            connection.invoke("ChangeTitleConversation", this.props.selectedChat, this.state.title).then(res => {
-                if (res) {
-                    alert("Remaned");
+            let xhr = new XMLHttpRequest();
+            xhr.open("POST", "/api/chat/ChangeTitleConversation/" + this.props.selectedChat);
+
+            xhr.onreadystatechange = () => {
+                if (xhr.readyState === 4 && xhr.status === 200) {
+                    if (xhr.response === 'true')
+                        alert("Remaned");
+                    else
+                        alert("Didn't rename");
                 }
-                else {
+                else if (xhr.readyState === 4) {
                     alert("Didn't rename");
                 }
-            })
+            };
+
+            let formData = new FormData();
+            formData.append("title", this.state.title);
+
+            xhr.send(formData);
         }
     }
 
@@ -38,31 +62,52 @@
     handleDeleteConversation() {
         var guid = this.props.selectedChat;
         if (guid) {
-            connection.invoke("DeleteConversation", guid).then(res => {
-                if (res) {
-                    alert("Closed!");
-                    this.refs.close.click();
+
+            let xhr = new XMLHttpRequest();
+            xhr.open("POST", "/api/chat/DeleteConversation/" + guid);
+
+            xhr.onreadystatechange = () => {
+                if (xhr.readyState === 4 && xhr.status === 200) {
+                    if (xhr.response === 'true') {
+                        alert("Closed!");
+                        this.refs.close.click();
+                    }
+                    else {
+                        alert("Didn't close!");
+                    }
                 }
-                else {
-                    alert("Didn't close!");
+                else if (xhr.readyState === 4) {
+                    console.error("Warning");
                 }
-            })
+            };
+
+            xhr.send();
         }
     }
 
     handleLeaveConversation() {
         var guid = this.props.selectedChat;
         if (guid) {
-            connection.invoke("LeaveConversation", guid).then(res => {
-                if (res) {
-                    alert("Leaved!");
-                    this.props.leaveChat();
-                    this.refs.close.click();
+            let xhr = new XMLHttpRequest();
+            xhr.open("POST", "/api/chat/LeaveConversation/" + guid);
+
+            xhr.onreadystatechange = () => {
+                if (xhr.readyState === 4 && xhr.status === 200) {
+                    if (xhr.response === 'true') {
+                        alert("Leaved!");
+                        this.props.leaveChat();
+                        this.refs.close.click();
+                    }
+                    else {
+                        alert("Didn't delete!");
+                    }
                 }
-                else {
-                    alert("Didn't delete!");
+                else if (xhr.readyState === 4) {
+                    console.error("Warning");
                 }
-            })
+            };
+
+            xhr.send();
         }
     }
 
@@ -70,15 +115,25 @@
         return () => {
             var guidConversation = this.props.selectedChat;
             if (guidConversation && guidUser) {
-                connection.invoke("DeleteParticipant", guidUser, guidConversation).then(res => {
-                    if (res) {
-                        alert("Deleted!");
-                        this.props.deleteParticipant(guidUser);
+                let xhr = new XMLHttpRequest();
+                xhr.open("POST", "/api/chat/DeleteParticipant/" + guidConversation + "/" + guidUser);
+
+                xhr.onreadystatechange = () => {
+                    if (xhr.readyState === 4 && xhr.status === 200) {
+                        if (xhr.response === 'true') {
+                            alert("Deleted!");
+                            this.props.deleteParticipant(guidUser);
+                        }
+                        else {
+                            alert("Didn't delete!");
+                        }
                     }
-                    else {
-                        alert("Didn't delete!");
+                    else if (xhr.readyState === 4) {
+                        console.error("Warning");
                     }
-                })
+                };
+
+                xhr.send();
             }
         }
     }
@@ -97,9 +152,14 @@
 
             xhr.onreadystatechange = () => {
                 if (xhr.readyState === 4 && xhr.status === 200) {
-                    alert("Added!");
-                    this.props.addParticipant();
-                    this.setState({ newParticipant: '' });
+                    if (xhr.response === 'true') {
+                        alert("Added!");
+                        this.props.addParticipant();
+                        this.setState({ newParticipant: '' });
+                    }
+                    else {
+                        alert("Didn't added!");
+                    }
                 }
                 else if (xhr.readyState === 4) {
                     alert("Didn't added!");

@@ -134,7 +134,7 @@ namespace ChatProject.Controllers
                 }
             }
         }
-        
+
         [Route("DeleteMessages/{guid}"), HttpPost]
         public async Task<bool> DeleteMessages(string guid, IEnumerable<int> msgs)
         {
@@ -150,7 +150,7 @@ namespace ChatProject.Controllers
             var messages = conversation.Messages.Where(m => m.Sender == user && msgs.Any(msg => msg == m.MessageId)).ToList();
             if (messages.Count() != msgs.Count()) return false;
 
-            foreach(var message in messages)
+            foreach (var message in messages)
             {
                 if (message.Attachments.Count() > 0)
                     foreach (var attachment in message.Attachments.ToList())
@@ -167,7 +167,7 @@ namespace ChatProject.Controllers
                 MessagesIds = msgs
             };
 
-            foreach(var usr in conversation.Participants.Select(part => part.User))
+            foreach (var usr in conversation.Participants.Select(part => part.User))
             {
                 await _hubContext.Clients.User(usr.Id).SendCoreAsync("ReceiveDeletedMessages", new[] { deletedMessages });
             }
@@ -214,6 +214,236 @@ namespace ChatProject.Controllers
             } });
 
             return true;
+        }
+
+        [Route("DeleteConversation/{guid}"), HttpPost]
+        public async Task<bool> DeleteConversation(string guid)
+        {
+            if (String.IsNullOrEmpty(guid))
+                return false;
+            ApplicationUser user = await _userManager.GetUserAsync(User);
+            if (user == null)
+                return false;
+
+            Conversation conversation = await _unitOfWork.ConversationRepository.GetConversationByGuidAsync(guid);
+            if (conversation == null || conversation.Creator != user) return false;
+
+            conversation.Status = StatusConversation.closed;
+            await _unitOfWork.ConversationRepository.UpdateAsync(conversation);
+
+            IEnumerable<ApplicationUser> users = conversation.Participants.Select(part => part.User);
+            foreach (ApplicationUser usr in users)
+            {
+                await _hubContext.Clients.User(usr.Id).SendCoreAsync("ReceiveClosedChat", new[] { guid });
+            }
+
+            return true;
+        }
+
+        [Route("LeaveConversation/{guid}"), HttpPost]
+        public async Task<bool> LeaveConversation(string guid)
+        {
+            if (String.IsNullOrEmpty(guid))
+                return false;
+            ApplicationUser user = await _userManager.GetUserAsync(User);
+            if (user == null)
+                return false;
+
+            Conversation conversation = await _unitOfWork.ConversationRepository.GetConversationByGuidAsync(guid);
+            if (conversation == null) return false;
+
+            Participant participant = conversation.Participants.SingleOrDefault(part => part.User == user);
+            if (participant == null) return false;
+
+            await _unitOfWork.ParticipantRepository.DeleteAsync(participant);
+
+            if (String.IsNullOrEmpty(conversation.Title))
+            {
+                conversation.Status = StatusConversation.closed;
+                conversation.Title = user.FirstName + " " + user.LastName;
+                await _unitOfWork.ConversationRepository.UpdateAsync(conversation);
+
+                ApplicationUser usr = conversation.Participants.Select(part => part.User).SingleOrDefault();
+                if (usr != null)
+                    await _hubContext.Clients.User(usr.Id).SendCoreAsync("ReceiveClosedChat", new[] { guid });
+            }
+
+            return true;
+        }
+
+        [Route("DeleteParticipant/{guidConversation}/{guidUser}"), HttpPost]
+        public async Task<bool> DeleteParticipant(string guidConversation, string guidUser)
+        {
+            if (String.IsNullOrEmpty(guidUser) || String.IsNullOrEmpty(guidConversation))
+                return false;
+            ApplicationUser user = await _userManager.GetUserAsync(User);
+            if (user == null)
+                return false;
+            ApplicationUser userDelete = await _userManager.FindByIdAsync(guidUser);
+            if (userDelete == null)
+                return false;
+            
+            Conversation conversation = await _unitOfWork.ConversationRepository.GetConversationByGuidAsync(guidConversation);
+            if (conversation == null || String.IsNullOrEmpty(conversation.Title) || conversation.Creator != user) return false;
+
+            Participant participant = conversation.Participants.SingleOrDefault(part => part.User == userDelete);
+            if (participant == null)
+                return false;
+
+            await _unitOfWork.ParticipantRepository.DeleteAsync(participant);
+
+            await _hubContext.Clients.User(userDelete.Id).SendCoreAsync("ReceiveClosedChat", new[] { guidConversation });
+
+            return true;
+        }
+
+        [Route("CreateConversation"), HttpPost]
+        public async Task<bool> CreateConversation(string title, IEnumerable<string> names)
+        {
+            //to check count names are received
+            
+if (names.Count() == 0) return false;
+
+            //to get current user
+            ApplicationUser user = await _userManager.GetUserAsync(User);
+            if (user == null)
+                return false;
+
+            //to get users from DB
+            IEnumerable<ApplicationUser> users = names.Select(name => _userManager.FindByNameAsync(name).Result).Where(usr => usr != null);
+
+            //to check lenght users and name 
+            if (users.Count() != names.Count()) return false;
+
+            //Determine the type of conversation and check for correctness
+            if (String.IsNullOrEmpty(title))
+            {
+                if (users.Count() != 1)
+                {
+                    return false;
+                }
+            }
+            else
+            {
+                for (int i = 0; i < users.Count(); i++)
+                    for (int j = 0; j < users.Count(); j++)
+                    {
+                        if (i == j) continue;
+                        if (users.ElementAtOrDefault(i) == users.ElementAtOrDefault(j))
+                            return false;
+                    }
+            }
+
+            Conversation conversation = new Conversation()
+            {
+                Created = DateTime.Now,
+                Creator = user,
+                Guid = Guid.NewGuid().ToString(),
+                Status = StatusConversation.opened,
+                Title = string.IsNullOrEmpty(title) ? null : title,
+                Updated = DateTime.Now
+            };
+
+            await _unitOfWork.ConversationRepository.CreateAsync(conversation);
+
+            ConversationReturn conversationsReturn = new ConversationReturn()
+            {
+                Guid = conversation.Guid,
+                Text = "",
+                Image = string.IsNullOrEmpty(title) ? users.SingleOrDefault().Avatar : "avatars/default.jpg",
+                Title = string.IsNullOrEmpty(title) ? users.SingleOrDefault().FirstName + " " + users.SingleOrDefault().LastName : title
+            };
+
+            //Add user's main as participant
+            await _unitOfWork.ParticipantRepository.CreateAsync(new Participant()
+            {
+                Conversation = conversation,
+                Type = TypeParticipant.administrator,
+                User = user
+            });
+            await _hubContext.Clients.User(user.Id).SendCoreAsync("ReceiveCreatedChat", new[] { conversationsReturn });
+
+            if (string.IsNullOrEmpty(title))
+            {
+                conversationsReturn.Title = user.FirstName + " " + user.LastName;
+                conversationsReturn.Image = user.Avatar;
+            }
+            //Add other users
+            foreach (var usr in users)
+            {
+                await _unitOfWork.ParticipantRepository.CreateAsync(new Participant()
+                {
+                    Conversation = conversation,
+                    Type = TypeParticipant.user,
+                    User = usr
+                });
+
+                await _hubContext.Clients.User(usr.Id).SendCoreAsync("ReceiveCreatedChat", new[] { conversationsReturn });
+            }
+
+            return true;
+        }
+
+        [Route("ChangeTitleConversation/{guid}"), HttpPost]
+        public async Task<bool> ChangeTitleConversation(string guid, string title)
+        {
+            if (String.IsNullOrEmpty(guid) || String.IsNullOrEmpty(title))
+                return false;
+            ApplicationUser user = await _userManager.GetUserAsync(User);
+            if (user == null)
+                return false;
+
+            Conversation conversation = await _unitOfWork.ConversationRepository.GetConversationByGuidAsync(guid);
+            if (conversation == null ||String.IsNullOrEmpty(conversation.Title) || conversation.Creator != user) return false;
+
+            conversation.Title = title;
+            await _unitOfWork.ConversationRepository.UpdateAsync(conversation);
+
+            IEnumerable<ApplicationUser> users = conversation.Participants.Select(part => part.User);
+            foreach (ApplicationUser usr in users)
+            {
+                await _hubContext.Clients.User(usr.Id).SendCoreAsync("ReceiveChangeTitle", new[] { title, guid });
+            }
+
+            return true;
+        }
+
+        [Route("GetAllUsers"), HttpGet]
+        public async Task<IEnumerable<string>> GetAllUsers()
+        {
+            ApplicationUser user = await _userManager.GetUserAsync(User);
+            if (user == null)
+                return null;
+
+            return _userManager.Users.Where(usr => usr != user).Select(usr => usr.UserName);
+        }
+
+        [Route("GetConversations"), HttpGet]
+        public async Task<IEnumerable<ConversationReturn>> GetConversations()
+        {
+            ApplicationUser user = await _userManager.GetUserAsync(User);
+            if (user == null)
+                return null;
+
+            IEnumerable<Conversation> conversations = _unitOfWork.ParticipantRepository.GetAllConversationsByUser(user);
+            if (conversations.Count() == 0)
+                return null;
+
+            IEnumerable<ConversationReturn> conversationsReturn = conversations.Select(conversation =>
+            {
+                var userConv = (conversation.Title == null) ? conversation.Participants.FirstOrDefault(p => p.User != user).User : null;
+                var lastMessage = conversation.Messages.LastOrDefault();
+
+                return new ConversationReturn()
+                {
+                    Guid = conversation.Guid,
+                    Text = lastMessage != null ? (user == lastMessage.Sender ? "You: " : "") + (String.IsNullOrEmpty(lastMessage.Text) ? "[File]"  : lastMessage.Text) : "",
+                    Image = (userConv == null) ? "avatars/default.jpg" : userConv.Avatar,
+                    Title = (userConv == null) ? conversation.Title : userConv.FirstName + " " + userConv.LastName
+                };
+            });
+
+            return conversationsReturn;
         }
     }
 }

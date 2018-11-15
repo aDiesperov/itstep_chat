@@ -15,19 +15,25 @@
             },
             _conversations: []
         };
+        
+        let xhr = new XMLHttpRequest();
+        xhr.open("GET", "/api/chat/GetConversations" );
 
-        connection.invoke("GetConversations").then(conversations => {
-            if (conversations !== null && conversations.length > 0) {
-                this.setState({
-                    _conversations: conversations
-                });
-                if (this.state.selectedChat === '') {
-                    this.handleChatChange(conversations[0].guid);
+        xhr.onreadystatechange = () => {
+            if (xhr.readyState === 4 && xhr.status === 200) {
+                let conversations = JSON.parse(xhr.response);
+                if (conversations !== null) {
+                    this.setState({
+                        _conversations: conversations
+                    });
+                    if (this.state.selectedChat === '') {
+                        this.handleChatChange(conversations[0].guid);
+                    }
                 }
             }
-        }).catch(reason => {
-            console.error('onRejected function called: ' + reason);
-        });
+        };
+
+        xhr.send();
 
         connection.on("ReceiveMessage", this.handleGetMessage.bind(this));
         connection.on("ReceiveClosedChat", this.handleClosedChat.bind(this));
@@ -99,7 +105,7 @@
         var conversations = this.state._conversations;
         var conversation = conversations.filter(conv => conv.guid === message.conversation);
         if (conversation.length > 0) {
-            conversation[0].text = (message.isMine ? "You: " : "") + message.text;
+            conversation[0].text = (message.isMine ? "You: " : "") + (message.text =s== '' ? "[File]" : message.text);
             this.setState({ _conversations: conversations });
         }
 
@@ -129,6 +135,20 @@
 
     }
 
+    defaultData() {
+        this.setState({
+            chatHistory: [],
+            chatInfo: {
+                image: 'avatars/default.jpg',
+                title: '',
+                group: false,
+                status: 1,
+                creator: false,
+                participants: []
+            }
+        });
+    }
+
     updateData(guid) {
         if (guid) {
             let xhr = new XMLHttpRequest();
@@ -137,40 +157,36 @@
             xhr.onreadystatechange = () => {
                 if (xhr.readyState === 4 && xhr.status === 200) {
                     let chatInfoAll = JSON.parse(xhr.response);
-                    this.setState({
-                        chatHistory: chatInfoAll.messages,
-                        chatInfo: {
-                            image: chatInfoAll.image,
-                            title: chatInfoAll.title,
-                            group: chatInfoAll.group,
-                            status: chatInfoAll.status,
-                            creator: chatInfoAll.creator,
-                            participants: chatInfoAll.participants
-                        }
-                    });
-                    $(".messages").ready(
-                        $(".messages").animate({ scrollTop: $(".messages ul").height() }, "fast")
-                    );
+                    if (chatInfoAll !== null) {
+                        this.setState({
+                            chatHistory: chatInfoAll.messages,
+                            chatInfo: {
+                                image: chatInfoAll.image,
+                                title: chatInfoAll.title,
+                                group: chatInfoAll.group,
+                                status: chatInfoAll.status,
+                                creator: chatInfoAll.creator,
+                                participants: chatInfoAll.participants
+                            }
+                        });
+                        $(".messages").ready(
+                            $(".messages").animate({ scrollTop: $(".messages ul").height() }, "fast")
+                        );
+                    }
+                    else {
+                        this.defaultData();
+                    }
                 }
                 else if (xhr.readyState === 4) {
                     console.error("Conversation is warning");
+                    this.defaultData();
                 }
             };
 
             xhr.send();
         }
         else {
-            this.setState({
-                chatHistory: [],
-                chatInfo: {
-                    image: 'avatars/default.jpg',
-                    title: '',
-                    group: false,
-                    status: 1,
-                    creator: false,
-                    participants: []
-                }
-            });
+            this.defaultData();
         }
     }
 

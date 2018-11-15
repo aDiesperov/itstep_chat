@@ -7,9 +7,22 @@
             _title: ''
         };
 
-        connection.invoke("GetAllUsers").then(users => {
-            this.setState({ _options: users });
-        })
+        let xhr = new XMLHttpRequest();
+        xhr.open("GET", "/api/chat/GetAllUsers");
+
+        xhr.onreadystatechange = () => {
+            if (xhr.readyState === 4 && xhr.status === 200) {
+                let users = JSON.parse(xhr.response);
+                if (users !== null) {
+                    this.setState({ _options: users });
+                }
+            }
+            else if (xhr.readyState === 4) {
+                console.error("Warning");
+            }
+        };
+
+        xhr.send();
     }
 
     handleAddList() {
@@ -64,15 +77,32 @@
     }
 
     CreateConversation() {
-        connection.invoke("CreateConversation", this.state._title, this.state._participants).then(msg => {
-            if (msg) {
-                alert("Created!");
-                this.refs.close.click();
+        let xhr = new XMLHttpRequest();
+
+        xhr.open("POST", "/api/chat/CreateConversation");
+
+        xhr.onreadystatechange = () => {
+            if (xhr.readyState === 4 && xhr.status === 200) {
+                if (xhr.response === 'true') {
+                    alert("Created!");
+                    this.refs.close.click();
+                }
+                else {
+                    alert("Didn't create! You have error!");
+                }
             }
-            else {
-                alert("Not created! You have error!");
+            else if (xhr.readyState === 4) {
+                alert("Didn't create! You have error!");
             }
-        });
+        };
+
+        let formData = new FormData();
+
+        this.state._participants.forEach(part => 
+            formData.append("names", part));
+        formData.append("title", this.state._title);
+
+        xhr.send(formData);
     }
 
     render() {
