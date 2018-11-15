@@ -105,7 +105,7 @@
         var conversations = this.state._conversations;
         var conversation = conversations.filter(conv => conv.guid === message.conversation);
         if (conversation.length > 0) {
-            conversation[0].text = (message.isMine ? "You: " : "") + (message.text =s== '' ? "[File]" : message.text);
+            conversation[0].text = (message.isMine ? "You: " : "") + (message.text === '' ? "[File]" : message.text);
             this.setState({ _conversations: conversations });
         }
 
